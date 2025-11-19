@@ -1,0 +1,10 @@
+services:
+  blood-donation-redirector:
+    image: blood-donation-redirector
+    container_name: blood-donation-redirector
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9110:3000"
+    restart: always
