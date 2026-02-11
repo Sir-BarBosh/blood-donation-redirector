@@ -59,6 +59,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${gluten.variable} antialiased`}
       >
         {children}
+        {process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL &&
+          process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+            <script
+              defer
+              src={process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL}
+              data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            />
+          )}
       </body>
     </html>
   );
