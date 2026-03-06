@@ -17,21 +17,58 @@ function isValidHttpUrl(string: string) {
   return url.protocol === "http:" || url.protocol === "https:";
 }
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const FALLBACK_URL = "https://www.blood.co.uk/";
   let finalRedirectUrl = FALLBACK_URL;
   let determinedUrl = FALLBACK_URL;
+  let countryCodeOverride = undefined;
+
+  const params = await searchParams;
+  if (typeof params.country === "string" && params.country.length === 2) {
+    countryCodeOverride = params.country.toUpperCase();
+  }
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+           headersList.get("x-real-ip")?.trim() || 
+           "";
+
+  let countryCode = countryCodeOverride;
 
   try {
-    const headersList = await headers();
-    const ip = headersList.get("x-forwarded-for")?.split(",")[0] || "8.8.8.8"; // Default to a public IP for testing
+    if (!countryCode) {
+      let geoUrl = "https://get.geojs.io/v1/ip/geo.json"; // By default, uses the server's public IP (matches user's home network in local dev)
 
-    const geoRes = await fetch(`https://get.geojs.io/v1/ip/geo/${ip}.json`);
-    if (!geoRes.ok) {
-      throw new Error(`GeoJS API failed with status: ${geoRes.status}`);
+      // If we have a valid external IP, look up that specific IP instead
+      if (ip && ip !== "::1" && ip !== "127.0.0.1" && !ip.startsWith("192.168.") && !ip.startsWith("10.")) {
+        const ipv4Regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        const ipv6Regex = /^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$/;
+        if (ipv4Regex.test(ip) || ipv6Regex.test(ip)) {
+          geoUrl = `https://get.geojs.io/v1/ip/geo/${ip}.json`;
+        } else {
+          console.warn(`Invalid IP format detected: ${ip}. Falling back to server IP.`);
+        }
+      }
+
+      // Fetch with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+      const geoRes = await fetch(geoUrl, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!geoRes.ok) {
+        throw new Error(`GeoJS API failed with status: ${geoRes.status}`);
+      }
+      const geoData = await geoRes.json();
+      countryCode = geoData.country_code;
     }
-    const geoData = await geoRes.json();
-    const countryCode = geoData.country_code;
 
     const typedSites: Sites = sites;
 
@@ -49,5 +86,5 @@ export default async function Home() {
     finalRedirectUrl = determinedUrl;
   }
 
-  return <RedirectPage redirectUrl={finalRedirectUrl} />;
+  return <RedirectPage redirectUrl={finalRedirectUrl} countryCode={countryCodeOverride} />;
 }

@@ -20,7 +20,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -30,4 +31,8 @@
 
 .animate-pulse {
   animation: pulse 2s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
 }

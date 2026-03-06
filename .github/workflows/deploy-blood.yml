@@ -8,24 +8,24 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
 
-    - name: Connect to Twingate
-      uses: twingate/github-action@v1
-      with:
-        service-key: ${{ secrets.TWINGATE_SERVICE_ACCOUNT_KEY }}
+      - name: Connect to Twingate
+        uses: twingate/github-action@v1.7
+        with:
+          service-key: ${{ secrets.TWINGATE_SERVICE_ACCOUNT_KEY }}
 
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd ${{ secrets.VM_APP_PATH }}
-          git pull
-          echo "NEXT_PUBLIC_UMAMI_SCRIPT_URL=${{ secrets.NEXT_PUBLIC_UMAMI_SCRIPT_URL }}" > .env
-          echo "NEXT_PUBLIC_UMAMI_WEBSITE_ID=${{ secrets.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}" >> .env
-          docker compose up -d --build
-          docker image prune -a -f
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.VM_APP_PATH }}
+            git pull
+            echo "NEXT_PUBLIC_UMAMI_SCRIPT_URL=${{ secrets.NEXT_PUBLIC_UMAMI_SCRIPT_URL }}" > .env
+            echo "NEXT_PUBLIC_UMAMI_WEBSITE_ID=${{ secrets.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}" >> .env
+            docker compose up -d --build
+            docker image prune -a -f
