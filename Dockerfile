@@ -1,14 +1,14 @@
 # Dockerfile
 
 # 1. Install dependencies
-FROM node:22-alpine AS deps
+FROM node:alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install --frozen-lockfile
 
 # 2. Build application
-FROM node:22-alpine AS builder
+FROM node:alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -19,7 +19,7 @@ ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=$NEXT_PUBLIC_UMAMI_WEBSITE_ID
 RUN npm run build
 
 # 3. Production image
-FROM node:22-alpine AS runner
+FROM node:alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

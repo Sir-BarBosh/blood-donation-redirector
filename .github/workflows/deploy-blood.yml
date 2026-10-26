@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       - name: Connect to Twingate
-        uses: twingate/github-action@v1.7
+        uses: twingate/github-action@v1.11
         with:
           service-key: ${{ secrets.TWINGATE_SERVICE_ACCOUNT_KEY }}
 
